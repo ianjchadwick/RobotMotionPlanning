@@ -1,0 +1,36 @@
+Q = priority_prepare()
+
+Q = 
+
+  0×1 empty <a href="matlab:helpPopup struct" style="font-weight:bold">struct</a> array with fields:
+
+    key
+    cost
+
+Q = priority_insert(Q, 12312, 34234)
+
+Q = 
+
+  <a href="matlab:helpPopup struct" style="font-weight:bold">struct</a> with fields:
+
+     key: 12312
+    cost: 34234
+
+Q = priority_insert(Q, [1 2], 34234)
+
+Q = 
+
+  2×1 <a href="matlab:helpPopup struct" style="font-weight:bold">struct</a> array with fields:
+
+    key
+    cost
+
+priority_isMember(Q, [1 2])
+
+ans =
+
+  <a href="matlab:helpPopup logical" style="font-weight:bold">logical</a>
+
+   1
+
+diary off
