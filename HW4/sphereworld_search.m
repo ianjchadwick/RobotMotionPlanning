@@ -12,13 +12,24 @@ load("sphereworld.mat");
 
 graph = sphereworld_freeSpace_graph(NCells);
 colorList = ['b', 'g', 'r', 'c', 'm'];
+idxGoal=1;
+figure(1)
 hold on
 sphereworld_plot(world,xGoal);
-for idxGoal=1:2
     for idxStart=1:5
         xPath = graph_search_startGoal(graph, xStart(:,idxStart), xGoal(:,idxGoal));
         plot(xPath(1,:),xPath(2,:),colorList(idxStart))
     end
+hold off
+idxGoal=2;
+figure(2)
+hold on
+sphereworld_plot(world,xGoal);
+    for idxStart=1:5
+        xPath = graph_search_startGoal(graph, xStart(:,idxStart), xGoal(:,idxGoal));
+        plot(xPath(1,:),xPath(2,:),colorList(idxStart))
+    end
+hold off
 end
 
 
