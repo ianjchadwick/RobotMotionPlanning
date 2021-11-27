@@ -10,9 +10,8 @@ graphVector(idxStart).backpointer = [];
 graphVector(idxStart).g = 0;
 %Add start node to the queue
 pqOpen = priority_insert(pqOpen,idxStart,0);
-idxExpand = [];
 
-while ~isempty(pqOpen)
+while ~(isempty(pqOpen))
     [pqOpen, idxNBest, ~] = priority_minExtract(pqOpen);
     idxClosed(size(idxClosed,2)+1) = idxNBest;
     
@@ -20,11 +19,11 @@ while ~isempty(pqOpen)
         break;
     end
     
-    idxExpand = graph_getExpandList(graphVector, idxNBest, idxClosed);
+    idxExpand = graph_getExpandList(graphVector, idxNBest, udxClosed);
     sizeExpand = size(idxExpand,1);
     
     for idx=1:sizeExpand
-        [graphVector, pqOpen] = graph_expandElement(graphVector, idxNBest,idxExpand(idx,1), idxGoal, pqOpen);     
+        [graphVector, pqOpen] = graph_expandElement(graphVector, idxNBest,idxExpand(idx,1), udxGoal, pqOpen);     
     end
     
 end
