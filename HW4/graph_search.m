@@ -5,7 +5,7 @@ function [xPath,graphVector]=graph_search(graphVector,idxStart,idxGoal)
 
 % Initialize priority queue, closed node list, and values for start node
 pqOpen = priority_prepare();
-idxClosed = []
+idxClosed = [];
 graphVector(idxStart).backpointer = [];
 graphVector(idxStart).g = 0;
 %Add start node to the queue
