@@ -33,6 +33,7 @@ xPath = graph_path(graphVector, idxStart, idxGoal);
 
 
 
+
 % Set a maximum limit of iterations in the main  @x   A* loop on line 
 %it:astar-main-loop of Algorithm  alg:astar. This will prevent the algorithm from
 %remaining stuck on malformed graphs (e.g., graphs containing a node as a

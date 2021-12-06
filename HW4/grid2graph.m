@@ -1,7 +1,7 @@
 %function [graphVector]=grid2graph(grid)
 %The function should return a  graphVector structure described by the inputs. See
 %Figure  fig:grid2graph for an example of the expected inputs and outputs.
-function [graphVector]=grid2graph(grid)
+function [graphVector]=grid2graph(grid, torus)
 %make sure values in F are logicals
 grid.F=logical(grid.F);
 

@@ -6,7 +6,7 @@ load('twolink_testData','obstaclePoints')
 plot(obstaclePoints(1,:),obstaclePoints(2,:),'r*')
 hold on
 for indexOfthetaPath = thetaPath
-    hw2_twolink_draw(indexOfthetaPath,'k')
+    twolink_plot(indexOfthetaPath,'k')
     pause(1/fps)
 end
 hold off

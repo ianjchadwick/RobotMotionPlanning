@@ -32,8 +32,8 @@ function [graphVector,pqOpen]=graph_expandElement(graphVector,idxNBest,idxX,idxG
     % Otherwise if it is already in the Queue and the cost to move there is
     % less than the current g(x) at x, update the cost and backpointer for
     % x
-    elseif cost < graphVector(idxX).g
-        graphVector(idxX).g = cost;
+    elseif (gNBest + cost) < graphVector(idxX).g
+        graphVector(idxX).g = cost + gNBest;
         graphVector(idxX).backpointer = idxNBest;
     end 
 end
