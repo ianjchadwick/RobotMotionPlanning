@@ -1,6 +1,6 @@
 import sys
 import numpy as np
-
+import collections
 
 
 """ 
@@ -13,26 +13,62 @@ neighbors = list of neighbors by node_id
 cost = g(x) movement cost from "moves so far"
 """
 class Node:
-
-    def __init__(self, node_id = 0, coords = [0,0]):
+    def __init__(self, node_id = int(), coords = [int(), int()]):
         self.node_id = node_id
         self.coords = coords
         self.d_exit = sys.maxsize
-        self.safety = 0
+        self.safety = sys.maxsize
         self.neighbors = []
         self.cost = 0
         self.backpointer = int()
 
 
 """
-Inputs: size of grid, tuple describing obstacle location and dimension
+Implement a Queue for wavefront algorithm
+"""
+class Queue:
+    def __init__(self):
+        self.elements = collections.deque()
+
+    def empty(self) -> bool:
+        return not self.elements
+
+    def enque(self, x):
+        self.elements.append(x)
+
+    def pop(self):
+        return self.elements.popleft()
+
+
+
+
+def shooter_wavefront(nodeList, shooter_locations=list[int()]):
+    for shooter in shooter_locations:
+        Q = Queue()
+        nodeList[shooter-1].safety = 0
+        Q.enque(shooter)
+        closed = []
+        while not Q.empty():
+            n = Q.pop()
+            closed.append(n)
+            wavefront = nodeList[n-1].safety + 1
+
+            for neighbor in nodeList[n-1].neighbors:
+                if neighbor not in closed:
+                    if nodeList[neighbor-1].safety > wavefront:
+                        nodeList[neighbor - 1].safety = wavefront
+                    Q.enque(neighbor)
+
+
+"""
+Inputs: size of grid, list describing obstacle location and dimension
 Output: grid with 1s representing free space and 0 for blocked spaces
 
 Create a 'size' x 'size' square ndarray with ones to represent free space and zeros for the spaces blocked by obstacles.
 The x-axis is the vertical axis and the y-axis is the horizontal axis.
-Obstacles are represented as a list of tuples where each 'obstacle' tuple is composed of the top left starting 
-coodinate and the length in the x and y directions [ [x,y], xLength, yLength]. The Output is a an array representation 
-of a grid where 1s represent free space and 0s are spaces blocked by obstacles
+Obstacles are represented as a list where each 'obstacle' list is composed of the top left starting coordinate and the 
+length in the x and y directions [ [x,y], xLength, yLength]. The Output is a an array representation of a grid where 1s 
+represent free space and 0s are spaces blocked by obstacles
 """
 def grid_construct(size, obstacles):
     grid = np.ones([size, size], dtype=int)
@@ -49,7 +85,7 @@ def grid_construct(size, obstacles):
     return grid
 
 
-# Determines that manhattan distance between two points on a grid
+# Determines that manhattan distance between two points on a grid where the points are a list of [x,y] coordinates
 def distance_manhattan(point1, point2):
     distance = abs(point1[0]-point2[0]) + abs(point1[1]-point2[1])
     return distance
@@ -77,7 +113,7 @@ Uses updated grid that has node numbers corresponding to their location in each 
 node's neighbors attribute with a list of neighbors by node_id starting CW -> N, E, S, W. These represent the edges 
 between each node
 """
-def node_getNeighbors(grid,nodelist):
+def node_get_neighbors(grid,nodelist):
 
     gridSize = len(grid) - 1
     for node in nodelist:
@@ -113,13 +149,13 @@ def node_initialize(grid):
 
     nodeList = []
 
-    for x in range(0,size):
-        for y in range(0,size):
+    for x in range(0, size):
+        for y in range(0, size):
             if grid[x][y] == 1:
                 grid[x][y] = nodeNum
-                node = Node(nodeNum, [x,y])
+                node = Node(nodeNum, [x, y])
                 nodeList.append(node)
-                nodeNum = nodeNum +1
+                nodeNum = nodeNum + 1
     return [grid, nodeList]
 
 
@@ -128,7 +164,7 @@ if __name__ == "__main__":
 
     obstacles = [[[1, 1], 1, 2], [[1,1], 2, 1]]
     exits = [[0, 0], [3, 3]]
-
+    shooters = [[0, 2]]
 
     testnode = Node(1, [0, 0])
     testnode.backpointer = 0
@@ -136,10 +172,16 @@ if __name__ == "__main__":
     print(grid)
     [grid2, nodeList] = node_initialize(grid)
     print(grid2)
-    node_getNeighbors(grid2, nodeList)
+    node_get_neighbors(grid2, nodeList)
     node_set_d_exit(nodeList, exits)
 
-    for nodes in nodeList:
-        print(nodes.d_exit)
+    grid3 = grid2
+    shooter_wavefront(nodeList, [3, 13])
+
+    for node in nodeList:
+        grid3[node.coords[0]][node.coords[1]] = node.safety
+
+    print(grid3)
+
 
 
