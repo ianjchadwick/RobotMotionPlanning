@@ -203,12 +203,10 @@ class Graph:
                     heuristic = neighbor.d_exit - neighbor.safety
                     neighbor_priority = new_cost + heuristic
                     neighbor.backpointer = nbest.node_id
-                    print("backpointer added: " + str(neighbor.backpointer))
                     queue.push(neighbor_id, neighbor_priority)
 
         path_id = exit_id
         while path_id != start_id:
-            print("adding to path: " + str(path_id))
             path.append(path_id)
             path_id = self.nodes[path_id-1].backpointer
 
@@ -216,6 +214,49 @@ class Graph:
         path.reverse()
         return path
 
+    def regular_a_star(self, start):
+        queue = PQueue()
+        closed = []
+        start_id = int
+        exit_id = int
+        path = []
+        # find node_id for matching start node
+        for node in self.nodes:
+            if node.coords == start:
+                start_id = node.node_id
+                break
+        self.nodes[start_id - 1].cost = 0
+        queue.push(start_id, 0)
+
+        while not queue.empty():
+            # Get node_id of the next best node in the queue
+            nbest_id = queue.pop()
+            closed.append(nbest_id)
+            nbest = self.nodes[nbest_id-1]
+
+            # Check to see if at an exit
+            if nbest.d_exit == 0:
+                exit_id = nbest.node_id
+                break
+
+            for neighbor_id in nbest.neighbors:
+                new_cost = nbest.cost + 1
+                neighbor = self.nodes[neighbor_id-1]
+                if neighbor_id not in closed or new_cost < neighbor.cost:
+                    neighbor.cost = new_cost
+                    heuristic = neighbor.d_exit
+                    neighbor_priority = new_cost + heuristic
+                    neighbor.backpointer = nbest.node_id
+                    queue.push(neighbor_id, neighbor_priority)
+
+        path_id = exit_id
+        while path_id != start_id:
+            path.append(path_id)
+            path_id = self.nodes[path_id-1].backpointer
+
+        path.append(start_id)
+        path.reverse()
+        return path
 
 
 """
@@ -278,12 +319,15 @@ if __name__ == "__main__":
     graphtest.node_get_neighbors()
     graphtest.node_set_d_exit()
     graphtest.shooter_wavefront(shooters)
-    shortest_path = graphtest.safest_escape_path([1, 4])
+    safest_shortest_path = graphtest.safest_escape_path([1, 4])
+    a_star_shortest_path = graphtest.regular_a_star([1, 4])
 
     print(graphtest.grid)
 
-    print("Shortest Path:")
-    print(shortest_path)
+    print("Safest Shortest Path:")
+    print(safest_shortest_path)
+    print("A* Shortest Path:")
+    print(a_star_shortest_path)
 
 
 
