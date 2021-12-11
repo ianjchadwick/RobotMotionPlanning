@@ -13,14 +13,14 @@ neighbors = list of neighbors by node_id
 cost = g(x) movement cost from "moves so far"
 """
 class Node:
-    def __init__(self, node_id = int(), coords = [int(), int()]):
+    def __init__(self, node_id: int(), coords: [int(), int()]):
         self.node_id = node_id
         self.coords = coords
         self.d_exit = sys.maxsize
         self.safety = sys.maxsize
         self.neighbors = []
         self.cost = 0
-        self.backpointer = int()
+        self.backpointer = []
 
 
 """
@@ -33,30 +33,46 @@ class Queue:
     def empty(self) -> bool:
         return not self.elements
 
-    def enque(self, x):
+    def enque(self, x: int):
         self.elements.append(x)
 
-    def pop(self):
+    def pop(self) -> int:
         return self.elements.popleft()
 
 
 
+class Graph:
+    def __init__(self):
+        self.nodes = list[Node]
 
-def shooter_wavefront(nodeList, shooter_locations=list[int()]):
+"""
+Inputs: the graph,  a list of shooter[x,y] coordinates
+Output: the graph with updated safety attribute for each node
+"""
+def shooter_wavefront(graph, shooter_coordinates=list[list[int()]]):
+
+    # Get the corresponding nod_id from the shooter coordinates
+    shooter_locations = []
+    for coordinate in shooter_coordinates:
+        for node in graph:
+            if node.coords == coordinate:
+                shooter_locations.append(node.node_id)
+                break
+
     for shooter in shooter_locations:
         Q = Queue()
-        nodeList[shooter-1].safety = 0
+        graph[shooter - 1].safety = 0
         Q.enque(shooter)
         closed = []
         while not Q.empty():
             n = Q.pop()
             closed.append(n)
-            wavefront = nodeList[n-1].safety + 1
+            wavefront = graph[n - 1].safety + 1
 
-            for neighbor in nodeList[n-1].neighbors:
+            for neighbor in graph[n - 1].neighbors:
                 if neighbor not in closed:
-                    if nodeList[neighbor-1].safety > wavefront:
-                        nodeList[neighbor - 1].safety = wavefront
+                    if graph[neighbor - 1].safety > wavefront:
+                        graph[neighbor - 1].safety = wavefront
                     Q.enque(neighbor)
 
 
@@ -92,31 +108,32 @@ def distance_manhattan(point1, point2):
 
 
 """
-Inputs: nodeList -> a list of node objects, exitList -> a list of [x,y] coordinates of exits
-Output: updated d_exit values for nodes in nodeList
+Inputs: graph -> a list of node objects, exitList -> a list of [x,y] coordinates of exits
+Output: updated d_exit values for nodes in the graph
 
 Find the distance to the closest exit (d_exit) from a list of [x,y] coordinate pairs corresponding to exits in exitList
 and update the node's d_exit with that value
 """
-def node_set_d_exit(nodeList, exitList):
-    for node in nodeList:
+def node_set_d_exit(graph, exitList):
+    for node in graph:
         for element in exitList:
             d_exit = distance_manhattan(node.coords, element)
             if d_exit < node.d_exit:
                 node.d_exit = d_exit
 
-"""
-Inputs: grid -> with node numbers, nodeList -> list of node objects
-Output: updates neighbors attribute for each node in nodeList representing the edge list for that node
 
-Uses updated grid that has node numbers corresponding to their location in each open cell and nodeList to populate each 
-node's neighbors attribute with a list of neighbors by node_id starting CW -> N, E, S, W. These represent the edges 
-between each node
 """
-def node_get_neighbors(grid,nodelist):
+Inputs: grid -> with node numbers, graph -> list of node objects
+Output: updates neighbors attribute for each node in the graph representing the edge list for that node
+
+Uses updated grid that has node numbers corresponding to their location in each open cell and the graph to populate each 
+node's neighbors attribute with a list of neighbors by node_id starting CW -> N, E, S, W. These represent the undirected
+edges between each node
+"""
+def node_get_neighbors(grid, graph):
 
     gridSize = len(grid) - 1
-    for node in nodelist:
+    for node in graph:
         nodeX = node.coords[0]
         nodeY = node.coords[1]
 
@@ -137,7 +154,7 @@ def node_get_neighbors(grid,nodelist):
 
 """
 Input: Grid with 1s and 0s
-Output: The modified grid and a list of nodes representing the free space
+Output: The modified grid and a graph represented as a list of nodes which in turn represent the free spaces
 
 Uses a grid where 1s are free space and 0s are blocked spaces to create a list of nodes for each free space where 
 the node_id-1 is the list index for that node and to replace the 1s in the grid with the number of the node_id that 
@@ -145,8 +162,8 @@ represents that space.
 """
 def node_initialize(grid):
     size = len(grid)
+    # start numbering nodes at 1 because 0s are used for obstacles.
     nodeNum = 1
-
     nodeList = []
 
     for x in range(0, size):
@@ -158,30 +175,6 @@ def node_initialize(grid):
                 nodeNum = nodeNum + 1
     return [grid, nodeList]
 
-
-# For testing purposes
-if __name__ == "__main__":
-
-    obstacles = [[[1, 1], 1, 2], [[1,1], 2, 1]]
-    exits = [[0, 0], [3, 3]]
-    shooters = [[0, 2]]
-
-    testnode = Node(1, [0, 0])
-    testnode.backpointer = 0
-    grid = grid_construct(4, obstacles)
-    print(grid)
-    [grid2, nodeList] = node_initialize(grid)
-    print(grid2)
-    node_get_neighbors(grid2, nodeList)
-    node_set_d_exit(nodeList, exits)
-
-    grid3 = grid2
-    shooter_wavefront(nodeList, [3, 13])
-
-    for node in nodeList:
-        grid3[node.coords[0]][node.coords[1]] = node.safety
-
-    print(grid3)
 
 
 
