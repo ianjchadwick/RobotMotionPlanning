@@ -1,6 +1,7 @@
 import sys
 import numpy as np
 import collections
+import heapq
 
 
 """ 
@@ -19,8 +20,22 @@ class Node:
         self.d_exit = sys.maxsize
         self.safety = sys.maxsize
         self.neighbors = []
-        self.cost = 0
-        self.backpointer = []
+        self.cost = float
+        self.backpointer = int
+
+
+class PQueue:
+    def __init__(self):
+        self.elements: list[tuple[float, int]] = []
+
+    def empty(self) -> bool:
+        return not self.elements
+
+    def push(self, item: int, priority: float):
+        heapq.heappush(self.elements, (priority,item))
+
+    def pop(self) -> int:
+        return heapq.heappop(self.elements)[1]
 
 
 """
@@ -40,51 +55,178 @@ class Queue:
         return self.elements.popleft()
 
 
-
 class Graph:
-    def __init__(self):
-        self.nodes = list[Node]
+    def __init__(self, size: int, obstacles: list, exits: list):
+        self.grid = grid_construct(size, obstacles)
+        self.nodes = []
+        self.exits = exits
 
-"""
-Inputs: the graph,  a list of shooter[x,y] coordinates
-Output: the graph with updated safety attribute for each node
-"""
-def shooter_wavefront(graph, shooter_coordinates=list[list[int()]]):
+    """
+    Output: The modified grid and a graph represented as a list of nodes which in turn represent the free spaces
 
-    # Get the corresponding nod_id from the shooter coordinates
-    shooter_locations = []
-    for coordinate in shooter_coordinates:
-        for node in graph:
-            if node.coords == coordinate:
-                shooter_locations.append(node.node_id)
+    Initializes the graph from a grid where 1s are free space and 0s are blocked spaces. Adds each node to "nodes" list
+    for each free space where the node_id-1 corresponds to the list's index for that node and to replace each "1" in the 
+    grid with the number of the node_id that represents that space.
+    """
+    def graph_initialize(self):
+        size = len(self.grid)
+        # start numbering nodes at 1 because 0s are used for obstacles.
+        nodeNum = 1
+
+        for x in range(0, size):
+            for y in range(0, size):
+                if self.grid[x][y] == 1:
+                    self.grid[x][y] = nodeNum
+                    node = Node(nodeNum, [x, y])
+                    self.nodes.append(node)
+                    nodeNum = nodeNum + 1
+
+    """
+    Output: updates neighbors attribute for each node in the graph representing the edge list for that node
+
+    Uses updated grid that has node numbers corresponding to their location in each open cell and the graph to populate 
+    each node's neighbors attribute with a list of neighbors by node_id starting CW -> N, E, S, W. These represent the 
+    undirected edges between each node
+    """
+    def node_get_neighbors(self):
+
+        gridSize = len(self.grid) - 1
+        for node in self.nodes:
+            nodeX = node.coords[0]
+            nodeY = node.coords[1]
+
+            # Add neighbor's node_id from grid if non-zero
+            # check N
+            if nodeX != 0 and self.grid[nodeX - 1][nodeY] != 0:
+                node.neighbors.append(self.grid[nodeX - 1][nodeY])
+            # check E
+            if nodeY != gridSize and self.grid[nodeX][nodeY + 1] != 0:
+                node.neighbors.append(self.grid[nodeX][nodeY + 1])
+            # check S
+            if nodeX != gridSize and self.grid[nodeX + 1][nodeY] != 0:
+                node.neighbors.append(self.grid[nodeX + 1][nodeY])
+            # check W
+            if nodeY != 0 and self.grid[nodeX][nodeY - 1] != 0:
+                node.neighbors.append(self.grid[nodeX][nodeY - 1])
+
+    """
+    Output: Updated d_exit values for nodes in the graph
+
+    Find the distance to the closest exit (d_exit) from a list of [x,y] coordinate pairs corresponding to exits in exitList
+    and update the node's d_exit with that value
+    """
+    def node_set_d_exit(self):
+        for node in self.nodes:
+            for element in self.exits:
+                d_exit = distance_manhattan(node.coords, element)
+                if d_exit < node.d_exit:
+                    node.d_exit = d_exit
+
+    """
+    Inputs: A list of shooter[x,y] coordinates
+    Output: the graph with updated safety attribute for each node
+    """
+    def shooter_wavefront(self, shooter_coordinates: list[list[int()]]):
+
+        # Get the corresponding nod_id from the shooter coordinates
+        shooter_locations = []
+        for coordinate in shooter_coordinates:
+            for node in self.nodes:
+                if node.coords == coordinate:
+                    shooter_locations.append(node.node_id)
+                    break
+
+        for shooter in shooter_locations:
+            Q = Queue()
+            self.nodes[shooter - 1].safety = 0
+            Q.enque(shooter)
+            closed = []
+            while not Q.empty():
+                n = Q.pop()
+                closed.append(n)
+                wavefront = self.nodes[n - 1].safety + 1
+
+                for neighbor in self.nodes[n - 1].neighbors:
+                    if neighbor not in closed:
+                        if self.nodes[neighbor - 1].safety > wavefront:
+                            self.nodes[neighbor - 1].safety = wavefront
+                        Q.enque(neighbor)
+
+    def next_cost(self, currentNode, nextNode):
+
+        cost = float
+        curr_d_exit = self.nodes[currentNode - 1].d_exit
+        curr_safety = self.nodes[currentNode - 1].safety
+        next_d_exit = self.nodes[nextNode - 1].d_exit
+        next_safety = self.nodes[nextNode - 1].safety
+
+        if curr_safety < next_safety and curr_d_exit > next_d_exit:
+            cost = 0
+        if curr_safety <= next_safety and curr_d_exit <= next_d_exit:
+            cost = 1
+        if curr_safety > next_safety and curr_d_exit >= next_d_exit:
+            cost = 1.5
+        if curr_safety > next_safety and curr_d_exit < next_d_exit:
+            cost = 2
+        return cost
+
+    def safest_escape_path(self, start):
+        queue = PQueue()
+        closed = []
+        start_id = int
+        exit_id = int
+        path = []
+        # find node_id for matching start node
+        for node in self.nodes:
+            if node.coords == start:
+                start_id = node.node_id
+                break
+        self.nodes[start_id - 1].cost = 0
+        queue.push(start_id, 0)
+
+        while not queue.empty():
+            # Get node_id of the next best node in the queue
+            nbest_id = queue.pop()
+            closed.append(nbest_id)
+            nbest = self.nodes[nbest_id-1]
+
+            # Check to see if at an exit
+            if nbest.d_exit == 0:
+                exit_id = nbest.node_id
                 break
 
-    for shooter in shooter_locations:
-        Q = Queue()
-        graph[shooter - 1].safety = 0
-        Q.enque(shooter)
-        closed = []
-        while not Q.empty():
-            n = Q.pop()
-            closed.append(n)
-            wavefront = graph[n - 1].safety + 1
+            for neighbor_id in nbest.neighbors:
+                new_cost = nbest.cost + self.next_cost(nbest.node_id,neighbor_id)
+                neighbor = self.nodes[neighbor_id-1]
+                if neighbor_id not in closed or new_cost < neighbor.cost:
+                    neighbor.cost = new_cost
+                    heuristic = neighbor.d_exit - neighbor.safety
+                    neighbor_priority = new_cost + heuristic
+                    neighbor.backpointer = nbest.node_id
+                    print("backpointer added: " + str(neighbor.backpointer))
+                    queue.push(neighbor_id, neighbor_priority)
 
-            for neighbor in graph[n - 1].neighbors:
-                if neighbor not in closed:
-                    if graph[neighbor - 1].safety > wavefront:
-                        graph[neighbor - 1].safety = wavefront
-                    Q.enque(neighbor)
+        path_id = exit_id
+        while path_id != start_id:
+            print("adding to path: " + str(path_id))
+            path.append(path_id)
+            path_id = self.nodes[path_id-1].backpointer
+
+        path.append(start_id)
+        path.reverse()
+        return path
+
 
 
 """
-Inputs: size of grid, list describing obstacle location and dimension
-Output: grid with 1s representing free space and 0 for blocked spaces
+Inputs: integer for size of grid, list describing obstacle location and dimension (see * below)
+Output: An array representation of a 2D grid where 1s represent free space and 0s are spaces blocked by obstacles
 
 Create a 'size' x 'size' square ndarray with ones to represent free space and zeros for the spaces blocked by obstacles.
-The x-axis is the vertical axis and the y-axis is the horizontal axis.
-Obstacles are represented as a list where each 'obstacle' list is composed of the top left starting coordinate and the 
-length in the x and y directions [ [x,y], xLength, yLength]. The Output is a an array representation of a grid where 1s 
-represent free space and 0s are spaces blocked by obstacles
+The x-axis is the vertical (row) axis and the y-axis is the horizontal (column) axis.
+
+*Obstacles are represented as a list where each 'obstacle' list is composed of the top left starting coordinate and the 
+length in the x and y directions [ [x,y], xLength, yLength].
 """
 def grid_construct(size, obstacles):
     grid = np.ones([size, size], dtype=int)
@@ -107,73 +249,60 @@ def distance_manhattan(point1, point2):
     return distance
 
 
-"""
-Inputs: graph -> a list of node objects, exitList -> a list of [x,y] coordinates of exits
-Output: updated d_exit values for nodes in the graph
+if __name__ == "__main__":
 
-Find the distance to the closest exit (d_exit) from a list of [x,y] coordinate pairs corresponding to exits in exitList
-and update the node's d_exit with that value
-"""
-def node_set_d_exit(graph, exitList):
-    for node in graph:
-        for element in exitList:
-            d_exit = distance_manhattan(node.coords, element)
-            if d_exit < node.d_exit:
-                node.d_exit = d_exit
+    obstacles = [[[1, 1], 1, 3],
+                 [[1, 1], 4, 1],
+                 [[3, 3], 2, 1],
+                 [[1, 5], 4, 1],
+                 [[1, 7], 1, 2],
+                 [[4, 7], 1, 2],
+                 [[6, 0], 1, 5],
+                 [[6, 4], 2, 1],
+                 [[6, 6], 1, 3],
+                 [[8, 6], 1, 1]]
+    exits = [[3, 8], [8, 0]]
+    shooters = [[0, 6]]
+    size = 9
 
-
-"""
-Inputs: grid -> with node numbers, graph -> list of node objects
-Output: updates neighbors attribute for each node in the graph representing the edge list for that node
-
-Uses updated grid that has node numbers corresponding to their location in each open cell and the graph to populate each 
-node's neighbors attribute with a list of neighbors by node_id starting CW -> N, E, S, W. These represent the undirected
-edges between each node
-"""
-def node_get_neighbors(grid, graph):
-
-    gridSize = len(grid) - 1
-    for node in graph:
-        nodeX = node.coords[0]
-        nodeY = node.coords[1]
-
-        # Add neighbor's node_id from grid if non-zero
-        # check N
-        if nodeX != 0 and grid[nodeX-1][nodeY] !=0:
-            node.neighbors.append(grid[nodeX-1][nodeY])
-        # check E
-        if nodeY != gridSize and grid[nodeX][nodeY+1] !=0:
-            node.neighbors.append(grid[nodeX][nodeY+1])
-        # check S
-        if nodeX != gridSize and grid[nodeX+1][nodeY] !=0:
-            node.neighbors.append(grid[nodeX+1][nodeY])
-        # check W
-        if nodeY != 0 and grid[nodeX][nodeY - 1] != 0:
-            node.neighbors.append(grid[nodeX][nodeY - 1])
+    """
+    grid = grid_construct(size, obstacles)
+    print(grid)
+    """
 
 
-"""
-Input: Grid with 1s and 0s
-Output: The modified grid and a graph represented as a list of nodes which in turn represent the free spaces
 
-Uses a grid where 1s are free space and 0s are blocked spaces to create a list of nodes for each free space where 
-the node_id-1 is the list index for that node and to replace the 1s in the grid with the number of the node_id that 
-represents that space.
-"""
-def node_initialize(grid):
-    size = len(grid)
-    # start numbering nodes at 1 because 0s are used for obstacles.
-    nodeNum = 1
-    nodeList = []
 
-    for x in range(0, size):
-        for y in range(0, size):
-            if grid[x][y] == 1:
-                grid[x][y] = nodeNum
-                node = Node(nodeNum, [x, y])
-                nodeList.append(node)
-                nodeNum = nodeNum + 1
-    return [grid, nodeList]
+    graphtest = Graph(size, obstacles, exits)
+    graphtest.graph_initialize()
+    graphtest.node_get_neighbors()
+    graphtest.node_set_d_exit()
+    graphtest.shooter_wavefront(shooters)
+    shortest_path = graphtest.safest_escape_path([1, 4])
+
+    print(graphtest.grid)
+
+    print("Shortest Path:")
+    print(shortest_path)
+
+
+
+    safetygrid = np.zeros([size, size], dtype=int)
+    d_exitgrid = np.zeros([size, size], dtype=int)
+
+    for node in graphtest.nodes:
+        safetygrid[node.coords[0], node.coords[1]] = node.safety
+        d_exitgrid[node.coords[0], node.coords[1]] = node.d_exit
+
+    print("Safety Value:")
+    print(safetygrid)
+    print("Exit Distances:")
+    print(d_exitgrid)
+
+
+
+
+
 
 
 
