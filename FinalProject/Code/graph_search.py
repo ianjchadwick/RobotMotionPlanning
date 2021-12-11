@@ -15,12 +15,7 @@ class PQueue:
     def pop(self) -> int:
         return heapq.heappop(self.elements)[1]
 
-def next_cost(graph, currentNode, nextNode):
 
-    curr_d_exit = graph[currentNode-1].d_exit
-    curr_safety = graph[currentNode-1].safety
-    next_d_exit = graph[nextNode-1].d_exit
-    next_safety = graph[nextNode-1].safety
 
 def safest_escape(graph, start):
     queue = PQueue()
@@ -51,7 +46,7 @@ if __name__ == "__main__":
 
     grid = graph.grid_construct(4, obstacles)
     print(grid)
-    [grid2, nodeList] = graph.node_initialize(grid)
+    [grid2, nodeList] = graph.graph_initialize(grid)
     print(grid2)
     graph.node_get_neighbors(grid2, nodeList)
     graph.node_set_d_exit(nodeList, exits)
