@@ -20,8 +20,8 @@ class Node:
         self.d_exit = sys.maxsize
         self.safety = sys.maxsize
         self.neighbors = []
-        self.cost = 0
-        self.backpointer = []
+        self.cost = float
+        self.backpointer = int
 
 
 class PQueue:
@@ -154,13 +154,68 @@ class Graph:
 
     def next_cost(self, currentNode, nextNode):
 
+        cost = float
         curr_d_exit = self.nodes[currentNode - 1].d_exit
         curr_safety = self.nodes[currentNode - 1].safety
         next_d_exit = self.nodes[nextNode - 1].d_exit
         next_safety = self.nodes[nextNode - 1].safety
 
-        if curr_safety < next_safety:
-            pass
+        if curr_safety < next_safety and curr_d_exit > next_d_exit:
+            cost = 0
+        if curr_safety <= next_safety and curr_d_exit <= next_d_exit:
+            cost = 1
+        if curr_safety > next_safety and curr_d_exit >= next_d_exit:
+            cost = 1.5
+        if curr_safety > next_safety and curr_d_exit < next_d_exit:
+            cost = 2
+        return cost
+
+    def safest_escape_path(self, start):
+        queue = PQueue()
+        closed = []
+        start_id = int
+        exit_id = int
+        path = []
+        # find node_id for matching start node
+        for node in self.nodes:
+            if node.coords == start:
+                start_id = node.node_id
+                break
+        self.nodes[start_id - 1].cost = 0
+        queue.push(start_id, 0)
+
+        while not queue.empty():
+            # Get node_id of the next best node in the queue
+            nbest_id = queue.pop()
+            closed.append(nbest_id)
+            nbest = self.nodes[nbest_id-1]
+
+            # Check to see if at an exit
+            if nbest.d_exit == 0:
+                exit_id = nbest.node_id
+                break
+
+            for neighbor_id in nbest.neighbors:
+                new_cost = nbest.cost + self.next_cost(nbest.node_id,neighbor_id)
+                neighbor = self.nodes[neighbor_id-1]
+                if neighbor_id not in closed or new_cost < neighbor.cost:
+                    neighbor.cost = new_cost
+                    heuristic = neighbor.d_exit - neighbor.safety
+                    neighbor_priority = new_cost + heuristic
+                    neighbor.backpointer = nbest.node_id
+                    print("backpointer added: " + str(neighbor.backpointer))
+                    queue.push(neighbor_id, neighbor_priority)
+
+        path_id = exit_id
+        while path_id != start_id:
+            print("adding to path: " + str(path_id))
+            path.append(path_id)
+            path_id = self.nodes[path_id-1].backpointer
+
+        path.append(start_id)
+        path.reverse()
+        return path
+
 
 
 """
@@ -196,24 +251,44 @@ def distance_manhattan(point1, point2):
 
 if __name__ == "__main__":
 
-    obstacles = [[[1, 1], 1, 2], [[1,1], 2, 1]]
-    exits = [[0, 0], [3, 3]]
-    shooters = [[0, 3]]
-    size = 4
+    obstacles = [[[1, 1], 1, 3],
+                 [[1, 1], 4, 1],
+                 [[3, 3], 2, 1],
+                 [[1, 5], 4, 1],
+                 [[1, 7], 1, 2],
+                 [[4, 7], 1, 2],
+                 [[6, 0], 1, 5],
+                 [[6, 4], 2, 1],
+                 [[6, 6], 1, 3],
+                 [[8, 6], 1, 1]]
+    exits = [[3, 8], [8, 0]]
+    shooters = [[0, 6]]
+    size = 9
 
-    grid = grid_construct(4, obstacles)
+    """
+    grid = grid_construct(size, obstacles)
     print(grid)
+    """
 
-    node = Node(1, [0, 0])
+
+
+
     graphtest = Graph(size, obstacles, exits)
     graphtest.graph_initialize()
     graphtest.node_get_neighbors()
     graphtest.node_set_d_exit()
     graphtest.shooter_wavefront(shooters)
+    shortest_path = graphtest.safest_escape_path([1, 4])
+
     print(graphtest.grid)
 
-    safetygrid = np.ones([size, size], dtype=int)
-    d_exitgrid = np.ones([size, size], dtype=int)
+    print("Shortest Path:")
+    print(shortest_path)
+
+
+
+    safetygrid = np.zeros([size, size], dtype=int)
+    d_exitgrid = np.zeros([size, size], dtype=int)
 
     for node in graphtest.nodes:
         safetygrid[node.coords[0], node.coords[1]] = node.safety
@@ -223,6 +298,7 @@ if __name__ == "__main__":
     print(safetygrid)
     print("Exit Distances:")
     print(d_exitgrid)
+
 
 
 
