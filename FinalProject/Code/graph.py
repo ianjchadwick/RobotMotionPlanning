@@ -145,7 +145,7 @@ class Graph:
 
     def next_cost(self, currentNode, nextNode):
 
-        cost = float
+        cost = 3.0
         curr_d_exit = self.nodes[currentNode - 1].d_exit
         curr_safety = self.nodes[currentNode - 1].safety
         next_d_exit = self.nodes[nextNode - 1].d_exit

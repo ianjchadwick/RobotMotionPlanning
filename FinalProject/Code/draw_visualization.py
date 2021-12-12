@@ -3,6 +3,27 @@ import pygame
 from pygame.locals import KEYDOWN, K_q
 import graph
 
+"""
+Original Pygame grid visualization code by Keno Leon:
+https://betterprogramming.pub/making-grids-in-python-7cf62c95f413
+GitHub: https://gist.github.com/KenoLeon/bbbbe02f38e32af53ae134d8fdad0de0#file-pygamereadmaptogrid-py
+
+Modified to visualize shortest paths algorithms on a 2D grid.
+Numbering begins in the top left corner
+row = x
+column = y
+
+To use with Safe* and A* search:
+ Inputs:
+ size: an integer for the (square) grid side length
+ obstacles: a list of coordinates describing the shape of obstacles in the format (from top left) 
+            [[topleftx, toplefty], verticalheightdown = int, horizontal_width_right = int]
+ exits = List of [x,y] coordinates of exit(s)
+ shooters = List of [x,y] coordinates of shooter(s)
+ start = [x,y] coordinate of start location
+"""
+
+
 # CONSTANTS:
 SCREENSIZE = WIDTH, HEIGHT = 800, 600
 BLACK = (0, 0, 0)
@@ -13,8 +34,11 @@ PURPLE = (128, 0, 128)
 ORANGE = (255, 140, 0)
 GREY = (160, 160, 160)
 
-# OUR GRID MAP:
-obstacles = [[[1, 1], 1, 3],
+# 2D GRID MAP:
+
+# 9x9 Small Grid Demonstration
+# Comment out this section to the next comment to switch sample visualization
+"""obstacles = [[[1, 1], 1, 3],
              [[1, 1], 4, 1],
              [[3, 3], 2, 1],
              [[1, 5], 4, 1],
@@ -27,34 +51,72 @@ obstacles = [[[1, 1], 1, 3],
 exits = [[3, 8], [8, 0]]
 shooters = [[0, 6]]
 size = 9
-start = [1, 4]
+start = [1, 4]"""
+# Comment to here
 
+# 13x13 Medium Grid Demonstration
+# Comment out this section to the next comment to switch sample visualization
+obstacles = [[[1, 1], 3, 1],
+                 [[1, 3], 1, 3],
+                 [[1, 6], 4, 1],
+                 [[1, 8], 2, 1],
+                 [[1, 10], 1, 2],
+                 [[1, 11], 4, 1],
+                 [[4, 3], 1, 4],
+                 [[4, 8], 1, 4],
+                 [[6, 0], 1, 3],
+                 [[6, 4], 6, 1],
+                 [[6, 6], 4, 1],
+                 [[6, 8], 1, 4],
+                 [[6, 11], 3, 1],
+                 [[9, 0], 2, 3],
+                 [[9, 6], 1, 6],
+                 [[11, 6], 2, 1],
+                 [[11, 6], 1, 3],
+                 [[11, 10], 1, 3],
+                 [[12, 2], 1, 1]]
+exits = [[0, 6], [5, 0], [12, 5], [5, 12]]
+shooters = [[3, 12], [3, 0]]
+size = 13
+start = [8, 10]
+# Comment to here
+
+# initialize graph
 graph.graph = graph.Graph(size, obstacles, exits)
 graph.graph.graph_initialize()
 graph.graph.node_get_neighbors()
 graph.graph.node_set_d_exit()
 graph.graph.shooter_wavefront(shooters)
+# Find Safe* path
 safest_shortest_path = graph.graph.safest_escape_path(start)
+
+# Find A* path
 a_star_shortest_path = graph.graph.regular_a_star(start)
 
+# Create copy of grid for visualization
 cellMAP = graph.grid_construct(size, obstacles)
 
+# Mark all Safe* path locations
 for node in safest_shortest_path:
     coordinate = graph.graph.nodes[node-1].coords
     cellMAP[coordinate[0]][coordinate[1]] = 2
 
+# Mark all A* path locations
 for node in a_star_shortest_path:
     coordinate = graph.graph.nodes[node-1].coords
     cellMAP[coordinate[0]][coordinate[1]] = 3
 
+# Mark shooter locations
 for shooter in shooters:
     if type(shooter) == list:
         cellMAP[shooter[0]][shooter[1]] = 4
     else:
         cellMAP[shooter] = 4
 
+# Mark the start loctation
 cellMAP[start[0]][start[1]] = 5
 
+# Mark Exits
 for location in exits:
     if type(location) == list:
         cellMAP[location[0]][location[1]] = 6
@@ -83,7 +145,7 @@ def placeCells():
     # GET CELL DIMENSIONS...
     cellBorder = 6
     celldimX = celldimY = (_VARS['gridWH']/_VARS['gridCells']) - (cellBorder*2)
-    # DOUBLE LOOP
+    # Color the squares with correct colors
     for row in range(cellMAP.shape[0]):
         for column in range(cellMAP.shape[1]):
             # Is the grid cell tiled ?
