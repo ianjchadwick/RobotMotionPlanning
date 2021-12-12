@@ -1,4 +1,5 @@
 import sys
+import time
 import numpy as np
 import collections
 import heapq
@@ -50,6 +51,9 @@ class Queue:
 
     def enque(self, x: int):
         self.elements.append(x)
+
+    def is_member(self, x) -> bool:
+        return self.elements.count(x) != 0
 
     def pop(self) -> int:
         return self.elements.popleft()
@@ -144,13 +148,15 @@ class Graph:
             while not Q.empty():
                 n = Q.pop()
                 closed.append(n)
-                wavefront = self.nodes[n - 1].safety + 1
+                current = self.nodes[n-1]
+                wavefront = current.safety + 1
 
-                for neighbor in self.nodes[n - 1].neighbors:
-                    if neighbor not in closed:
-                        if self.nodes[neighbor - 1].safety > wavefront:
-                            self.nodes[neighbor - 1].safety = wavefront
-                        Q.enque(neighbor)
+                for neighbor_id in current.neighbors:
+                    if neighbor_id not in closed:
+                        if self.nodes[neighbor_id - 1].safety > wavefront:
+                            self.nodes[neighbor_id - 1].safety = wavefront
+                        if not Q.is_member(neighbor_id):
+                            Q.enque(neighbor_id)
 
     def next_cost(self, currentNode, nextNode):
 
@@ -247,6 +253,7 @@ class Graph:
                     heuristic = neighbor.d_exit
                     neighbor_priority = new_cost + heuristic
                     neighbor.backpointer = nbest.node_id
+                    # print("Adding " + str(neighbor_id) + " to PQ")
                     queue.push(neighbor_id, neighbor_priority)
 
         path_id = exit_id
@@ -302,35 +309,36 @@ if __name__ == "__main__":
                  [[6, 4], 2, 1],
                  [[6, 6], 1, 3],
                  [[8, 6], 1, 1]]
-    exits = [[3, 8], [8, 0]]
+    exits = [[14, 14]]
     shooters = [[0, 6]]
-    size = 9
-
-    """
-    grid = grid_construct(size, obstacles)
-    print(grid)
-    """
-
-
-
+    size = 15
 
     graphtest = Graph(size, obstacles, exits)
     graphtest.graph_initialize()
     graphtest.node_get_neighbors()
     graphtest.node_set_d_exit()
+    wave_tic = time.perf_counter()
     graphtest.shooter_wavefront(shooters)
-    safest_shortest_path = graphtest.safest_escape_path([1, 4])
-    a_star_shortest_path = graphtest.regular_a_star([1, 4])
-
+    wave_toc = time.perf_counter()
     print(graphtest.grid)
-
+    print("Wavefront Timer: ")
+    print(wave_toc - wave_tic)
+    safe_tic = time.perf_counter()
+    safest_shortest_path = graphtest.safest_escape_path([0, 0])
+    safe_toc = time.perf_counter()
+    print("Safest Path A* Timer: ")
+    print(safe_toc - safe_tic)
     print("Safest Shortest Path:")
     print(safest_shortest_path)
+    star_tic = time.perf_counter()
+    a_star_shortest_path = graphtest.regular_a_star([0, 0])
+    star_toc = time.perf_counter()
+    print("Regular A* Timer: ")
+    print(star_toc - star_tic)
     print("A* Shortest Path:")
     print(a_star_shortest_path)
 
-
-
+    """
     safetygrid = np.zeros([size, size], dtype=int)
     d_exitgrid = np.zeros([size, size], dtype=int)
 
@@ -342,6 +350,7 @@ if __name__ == "__main__":
     print(safetygrid)
     print("Exit Distances:")
     print(d_exitgrid)
+    """
 
 
 
