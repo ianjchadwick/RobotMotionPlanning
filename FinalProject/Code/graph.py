@@ -2,7 +2,7 @@ import sys
 import time
 import numpy as np
 import collections
-import heapq
+from queue import PriorityQueue
 
 
 """ 
@@ -23,20 +23,6 @@ class Node:
         self.neighbors = []
         self.cost = float
         self.backpointer = int
-
-
-class PQueue:
-    def __init__(self):
-        self.elements: list[tuple[float, int]] = []
-
-    def empty(self) -> bool:
-        return not self.elements
-
-    def push(self, item: int, priority: float):
-        heapq.heappush(self.elements, (priority,item))
-
-    def pop(self) -> int:
-        return heapq.heappop(self.elements)[1]
 
 
 """
@@ -177,7 +163,7 @@ class Graph:
         return cost
 
     def safest_escape_path(self, start):
-        queue = PQueue()
+        pqueue = PriorityQueue()
         closed = []
         start_id = int
         exit_id = int
@@ -188,13 +174,13 @@ class Graph:
                 start_id = node.node_id
                 break
         self.nodes[start_id - 1].cost = 0
-        queue.push(start_id, 0)
+        pqueue.put((0, start_id))
 
-        while not queue.empty():
+        while not pqueue.empty():
             # Get node_id of the next best node in the queue
-            nbest_id = queue.pop()
+            nbest_id = pqueue.get()[1]
             closed.append(nbest_id)
-            nbest = self.nodes[nbest_id-1]
+            nbest = self.nodes[nbest_id - 1]
 
             # Check to see if at an exit
             if nbest.d_exit == 0:
@@ -202,26 +188,27 @@ class Graph:
                 break
 
             for neighbor_id in nbest.neighbors:
-                new_cost = nbest.cost + self.next_cost(nbest.node_id,neighbor_id)
-                neighbor = self.nodes[neighbor_id-1]
+                new_cost = nbest.cost + self.next_cost(nbest.node_id, neighbor_id)
+                neighbor = self.nodes[neighbor_id - 1]
                 if neighbor_id not in closed or new_cost < neighbor.cost:
                     neighbor.cost = new_cost
                     heuristic = neighbor.d_exit - neighbor.safety
                     neighbor_priority = new_cost + heuristic
                     neighbor.backpointer = nbest.node_id
-                    queue.push(neighbor_id, neighbor_priority)
+                    if not any(neighbor_id in item for item in pqueue.queue):
+                        pqueue.put((neighbor_priority, neighbor_id))
 
         path_id = exit_id
         while path_id != start_id:
             path.append(path_id)
-            path_id = self.nodes[path_id-1].backpointer
+            path_id = self.nodes[path_id - 1].backpointer
 
         path.append(start_id)
         path.reverse()
         return path
 
     def regular_a_star(self, start):
-        queue = PQueue()
+        pqueue = PriorityQueue()
         closed = []
         start_id = int
         exit_id = int
@@ -232,13 +219,13 @@ class Graph:
                 start_id = node.node_id
                 break
         self.nodes[start_id - 1].cost = 0
-        queue.push(start_id, 0)
+        pqueue.put((0, start_id))
 
-        while not queue.empty():
+        while not pqueue.empty():
             # Get node_id of the next best node in the queue
-            nbest_id = queue.pop()
-            closed.append(nbest_id)
-            nbest = self.nodes[nbest_id-1]
+            nbest_id = pqueue.get()[1]
+            nbest = self.nodes[nbest_id - 1]
+            closed.append(nbest.node_id)
 
             # Check to see if at an exit
             if nbest.d_exit == 0:
@@ -247,19 +234,19 @@ class Graph:
 
             for neighbor_id in nbest.neighbors:
                 new_cost = nbest.cost + 1
-                neighbor = self.nodes[neighbor_id-1]
+                neighbor = self.nodes[neighbor_id - 1]
+
                 if neighbor_id not in closed or new_cost < neighbor.cost:
                     neighbor.cost = new_cost
-                    heuristic = neighbor.d_exit
-                    neighbor_priority = new_cost + heuristic
+                    neighbor_priority = neighbor.d_exit + new_cost
                     neighbor.backpointer = nbest.node_id
-                    # print("Adding " + str(neighbor_id) + " to PQ")
-                    queue.push(neighbor_id, neighbor_priority)
+                    if not any(neighbor_id in item for item in pqueue.queue):
+                        pqueue.put((neighbor_priority, neighbor_id))
 
         path_id = exit_id
         while path_id != start_id:
             path.append(path_id)
-            path_id = self.nodes[path_id-1].backpointer
+            path_id = self.nodes[path_id - 1].backpointer
 
         path.append(start_id)
         path.reverse()
@@ -309,39 +296,24 @@ if __name__ == "__main__":
                  [[6, 4], 2, 1],
                  [[6, 6], 1, 3],
                  [[8, 6], 1, 1]]
-    exits = [[14, 14]]
-    shooters = [[0, 6]]
-    size = 15
+    exits = [[99, 99]]
+    shooters = [[0, 6], [8, 8]]
+    size = 100
 
     graphtest = Graph(size, obstacles, exits)
     graphtest.graph_initialize()
     graphtest.node_get_neighbors()
     graphtest.node_set_d_exit()
-    wave_tic = time.perf_counter()
-    graphtest.shooter_wavefront(shooters)
-    wave_toc = time.perf_counter()
-    print(graphtest.grid)
-    print("Wavefront Timer: ")
-    print(wave_toc - wave_tic)
-    safe_tic = time.perf_counter()
-    safest_shortest_path = graphtest.safest_escape_path([0, 0])
-    safe_toc = time.perf_counter()
-    print("Safest Path A* Timer: ")
-    print(safe_toc - safe_tic)
-    print("Safest Shortest Path:")
-    print(safest_shortest_path)
-    star_tic = time.perf_counter()
-    a_star_shortest_path = graphtest.regular_a_star([0, 0])
-    star_toc = time.perf_counter()
-    print("Regular A* Timer: ")
-    print(star_toc - star_tic)
-    print("A* Shortest Path:")
-    print(a_star_shortest_path)
 
-    """
     safetygrid = np.zeros([size, size], dtype=int)
     d_exitgrid = np.zeros([size, size], dtype=int)
 
+
+    wave_tic = time.perf_counter()
+    graphtest.shooter_wavefront(shooters)
+    wave_toc = time.perf_counter()
+
+    print(graphtest.grid)
     for node in graphtest.nodes:
         safetygrid[node.coords[0], node.coords[1]] = node.safety
         d_exitgrid[node.coords[0], node.coords[1]] = node.d_exit
@@ -350,7 +322,28 @@ if __name__ == "__main__":
     print(safetygrid)
     print("Exit Distances:")
     print(d_exitgrid)
-    """
+
+    print("Wavefront Timer: ")
+    print(wave_toc - wave_tic)
+    safe_tic = time.perf_counter()
+    safest_shortest_path = graphtest.safest_escape_path([0, 0])
+    safe_toc = time.perf_counter()
+    print("Safest Path A* Timer: ")
+    print(safe_toc - safe_tic)
+    safest_PL = len(safest_shortest_path)
+    print("Safest Shortest Path:" + str(safest_PL))
+    print(safest_shortest_path)
+    star_tic = time.perf_counter()
+    a_star_shortest_path = graphtest.regular_a_star([0, 0])
+    star_toc = time.perf_counter()
+    print("Regular A* Timer: ")
+    print(star_toc - star_tic)
+    a_star_PL = len(a_star_shortest_path)
+    print("A* Shortest Path:" + str(a_star_PL))
+    print(a_star_shortest_path)
+
+
+
 
 
 
