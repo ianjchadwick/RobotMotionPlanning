@@ -145,7 +145,7 @@ class Graph:
 
     def next_cost(self, currentNode, nextNode):
 
-        cost = 3.0
+        cost = 2.0
         curr_d_exit = self.nodes[currentNode - 1].d_exit
         curr_safety = self.nodes[currentNode - 1].safety
         next_d_exit = self.nodes[nextNode - 1].d_exit
@@ -412,14 +412,14 @@ if __name__ == "__main__":
     graphtest2.shooter_wavefront(shooters2)
     wave_toc = time.perf_counter()
     print(graphtest2.grid)
-    for node in graphtest2.nodes:
+    """for node in graphtest2.nodes:
         safetygrid2[node.coords[0], node.coords[1]] = node.safety
         d_exitgrid2[node.coords[0], node.coords[1]] = node.d_exit
 
     print("Safety Value:")
     print(safetygrid2)
     print("Exit Distances:")
-    print(d_exitgrid2)
+    print(d_exitgrid2)"""
 
     node_count = len(graphtest2.nodes)
     print("Number of Nodes: " + str(node_count))

@@ -21,6 +21,15 @@ To use with Safe* and A* search:
  exits = List of [x,y] coordinates of exit(s)
  shooters = List of [x,y] coordinates of shooter(s)
  start = [x,y] coordinate of start location
+ 
+ Output:
+ The grid with:
+  Obstacle/blocked squares marked in black.
+  Shooter Location(s) marked in red.
+  Start Location marked in blue.
+  Exit(s) marked in green.
+  The Safe* Path is marked in purple.
+  The A* Path is marked in orange. (in the case they share the same square Safe* is colored over by A*)  
 """
 
 
@@ -37,7 +46,7 @@ GREY = (160, 160, 160)
 # 2D GRID MAP:
 
 # 9x9 Small Grid Demonstration
-# Comment out this section to the next comment to switch sample visualization
+# Comment out this section to the next comment to change visualization
 """obstacles = [[[1, 1], 1, 3],
              [[1, 1], 4, 1],
              [[3, 3], 2, 1],
@@ -55,7 +64,7 @@ start = [1, 4]"""
 # Comment to here
 
 # 13x13 Medium Grid Demonstration
-# Comment out this section to the next comment to switch sample visualization
+# Comment out this section to the next comment to change visualization
 obstacles = [[[1, 1], 3, 1],
                  [[1, 3], 1, 3],
                  [[1, 6], 4, 1],
@@ -113,7 +122,7 @@ for shooter in shooters:
     else:
         cellMAP[shooter] = 4
 
-# Mark the start loctation
+# Mark the start location
 cellMAP[start[0]][start[1]] = 5
 
 # Mark Exits
@@ -192,7 +201,7 @@ def placeCells():
                     + cellBorder + (2 * column * cellBorder) + _VARS['lineWidth'] / 2,
                     celldimX, celldimY)
 
-# Draw filled rectangle at coordinates
+# Draw filled rectangle at coordinates for each color/type
 def drawWallCell(x, y, dimX, dimY):
     pygame.draw.rect(
      _VARS['surf'], BLACK,
