@@ -4,7 +4,6 @@ import numpy as np
 import collections
 from queue import PriorityQueue
 
-
 """ 
 Create a node object with fields: 
 node_id = integer
@@ -286,6 +285,10 @@ def distance_manhattan(point1, point2):
 
 if __name__ == "__main__":
 
+    """
+    9x9 test 1
+    """
+
     obstacles = [[[1, 1], 1, 3],
                  [[1, 1], 4, 1],
                  [[3, 3], 2, 1],
@@ -296,9 +299,10 @@ if __name__ == "__main__":
                  [[6, 4], 2, 1],
                  [[6, 6], 1, 3],
                  [[8, 6], 1, 1]]
-    exits = [[99, 99]]
-    shooters = [[0, 6], [8, 8]]
-    size = 100
+    exits = [[3, 8], [8, 0]]
+    shooters = [[0, 6]]
+    size = 9
+    start = [1, 4]
 
     graphtest = Graph(size, obstacles, exits)
     graphtest.graph_initialize()
@@ -308,25 +312,18 @@ if __name__ == "__main__":
     safetygrid = np.zeros([size, size], dtype=int)
     d_exitgrid = np.zeros([size, size], dtype=int)
 
-
     wave_tic = time.perf_counter()
     graphtest.shooter_wavefront(shooters)
     wave_toc = time.perf_counter()
-
     print(graphtest.grid)
-    for node in graphtest.nodes:
-        safetygrid[node.coords[0], node.coords[1]] = node.safety
-        d_exitgrid[node.coords[0], node.coords[1]] = node.d_exit
 
-    print("Safety Value:")
-    print(safetygrid)
-    print("Exit Distances:")
-    print(d_exitgrid)
+    node_count = len(graphtest.nodes)
+    print("Number of Nodes: " + str(node_count))
 
     print("Wavefront Timer: ")
     print(wave_toc - wave_tic)
     safe_tic = time.perf_counter()
-    safest_shortest_path = graphtest.safest_escape_path([0, 0])
+    safest_shortest_path = graphtest.safest_escape_path(start)
     safe_toc = time.perf_counter()
     print("Safest Path A* Timer: ")
     print(safe_toc - safe_tic)
@@ -334,7 +331,7 @@ if __name__ == "__main__":
     print("Safest Shortest Path:" + str(safest_PL))
     print(safest_shortest_path)
     star_tic = time.perf_counter()
-    a_star_shortest_path = graphtest.regular_a_star([0, 0])
+    a_star_shortest_path = graphtest.regular_a_star(start)
     star_toc = time.perf_counter()
     print("Regular A* Timer: ")
     print(star_toc - star_tic)
@@ -342,14 +339,68 @@ if __name__ == "__main__":
     print("A* Shortest Path:" + str(a_star_PL))
     print(a_star_shortest_path)
 
+    """
+    9x13 test 2
+    """
 
+    obstacles2 = [[[1, 1], 3, 1],
+                 [[1, 3], 1, 3],
+                 [[1, 6], 4, 1],
+                 [[1, 8], 2, 1],
+                 [[1, 10], 1, 2],
+                 [[1, 11], 4, 1],
+                 [[4, 3], 1, 4],
+                 [[4, 8], 1, 4],
+                 [[6, 0], 1, 3],
+                 [[6, 4], 3, 1],
+                 [[6, 6], 3, 1],
+                 [[6, 8], 1, 4],
+                 [[6, 11], 3, 1],
+                 [[9, 0], 4, 13]]
+    exits2 = [[5, 12], [8, 0]]
+    shooters2 = [[0, 11]]
+    size2 = 13
+    start2 = [1, 9]
 
+    graphtest2 = Graph(size2, obstacles2, exits2)
+    graphtest2.graph_initialize()
+    graphtest2.node_get_neighbors()
+    graphtest2.node_set_d_exit()
 
+    safetygrid2 = np.zeros([size2, size2], dtype=int)
+    d_exitgrid2 = np.zeros([size2, size2], dtype=int)
 
+    wave_tic = time.perf_counter()
+    graphtest2.shooter_wavefront(shooters2)
+    wave_toc = time.perf_counter()
+    print(graphtest2.grid)
+    for node in graphtest2.nodes:
+        safetygrid2[node.coords[0], node.coords[1]] = node.safety
+        d_exitgrid2[node.coords[0], node.coords[1]] = node.d_exit
 
+    print("Safety Value:")
+    print(safetygrid2)
+    print("Exit Distances:")
+    print(d_exitgrid2)
 
+    node_count = len(graphtest2.nodes)
+    print("Number of Nodes: " + str(node_count))
 
-
-
-
-
+    print("Wavefront Timer: ")
+    print(wave_toc - wave_tic)
+    safe_tic = time.perf_counter()
+    safest_shortest_path = graphtest2.safest_escape_path(start2)
+    safe_toc = time.perf_counter()
+    print("Safest Path A* Timer: ")
+    print(safe_toc - safe_tic)
+    safest_PL = len(safest_shortest_path)
+    print("Safest Shortest Path:" + str(safest_PL))
+    print(safest_shortest_path)
+    star_tic = time.perf_counter()
+    a_star_shortest_path = graphtest2.regular_a_star(start2)
+    star_toc = time.perf_counter()
+    print("Regular A* Timer: ")
+    print(star_toc - star_tic)
+    a_star_PL = len(a_star_shortest_path)
+    print("A* Shortest Path:" + str(a_star_PL))
+    print(a_star_shortest_path)
