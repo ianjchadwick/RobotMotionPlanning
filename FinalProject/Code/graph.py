@@ -323,26 +323,26 @@ if __name__ == "__main__":
     size = 9
     start = [1, 4]
 
-    graphtest = Graph(size, obstacles, exits)
-    graphtest.graph_initialize()
-    graphtest.node_get_neighbors()
-    graphtest.node_set_d_exit()
+    graph = Graph(size, obstacles, exits)
+    graph.graph_initialize()
+    graph.node_get_neighbors()
+    graph.node_set_d_exit()
 
     safetygrid = np.zeros([size, size], dtype=int)
     d_exitgrid = np.zeros([size, size], dtype=int)
 
     wave_tic = time.perf_counter()
-    graphtest.shooter_wavefront(shooters)
+    graph.shooter_wavefront(shooters)
     wave_toc = time.perf_counter()
-    print(graphtest.grid)
+    print(graph.grid)
 
-    node_count = len(graphtest.nodes)
+    node_count = len(graph.nodes)
     print("Number of Nodes: " + str(node_count))
 
     print("Wavefront Timer: ")
     print(wave_toc - wave_tic)
     safe_tic = time.perf_counter()
-    safest_shortest_path = graphtest.safest_escape_path(start)
+    safest_shortest_path = graph.safest_escape_path(start)
     safe_toc = time.perf_counter()
     print("Safest Path A* Timer: ")
     print(safe_toc - safe_tic)
@@ -350,7 +350,7 @@ if __name__ == "__main__":
     print("Safest Shortest Path:" + str(safest_PL))
     print(safest_shortest_path)
     star_tic = time.perf_counter()
-    a_star_shortest_path = graphtest.regular_a_star(start)
+    a_star_shortest_path = graph.regular_a_star(start)
     star_toc = time.perf_counter()
     print("Regular A* Timer: ")
     print(star_toc - star_tic)
