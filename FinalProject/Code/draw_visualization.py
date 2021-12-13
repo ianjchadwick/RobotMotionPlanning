@@ -45,6 +45,7 @@ GREY = (160, 160, 160)
 
 # 2D GRID MAP:
 
+# FIGURE 1 - Safe Exit
 # 9x9 Small Grid Demonstration
 # Comment out this section to the next comment to change visualization
 """obstacles = [[[1, 1], 1, 3],
@@ -63,6 +64,35 @@ size = 9
 start = [1, 4]"""
 # Comment to here
 
+# FIGURE 2 - Safe Exit
+# 13x13 Medium Grid Demonstration
+# Comment out this section to the next comment to change visualization
+"""obstacles = [[[1, 1], 3, 1],
+                 [[1, 3], 1, 3],
+                 [[1, 6], 4, 1],
+                 [[1, 8], 2, 1],
+                 [[1, 10], 1, 2],
+                 [[1, 11], 4, 1],
+                 [[4, 3], 1, 4],
+                 [[4, 8], 1, 4],
+                 [[6, 0], 1, 3],
+                 [[6, 4], 6, 1],
+                 [[6, 6], 4, 1],
+                 [[6, 8], 1, 4],
+                 [[6, 11], 3, 1],
+                 [[9, 0], 2, 3],
+                 [[9, 6], 1, 6],
+                 [[11, 6], 2, 1],
+                 [[11, 6], 1, 3],
+                 [[11, 10], 1, 3],
+                 [[12, 2], 1, 1]]
+exits = [[8, 0], [5, 12]]
+shooters = [[0, 11]]
+size = 13
+start = [8, 10]"""
+# Comment to here
+
+# FIGURE 3 - Safe Exit
 # 13x13 Medium Grid Demonstration
 # Comment out this section to the next comment to change visualization
 obstacles = [[[1, 1], 3, 1],
@@ -89,6 +119,63 @@ shooters = [[3, 12], [3, 0]]
 size = 13
 start = [8, 10]
 # Comment to here
+
+# FIGURE 4 - Too many shooters example
+# 13x13 Medium Grid Demonstration
+# Comment out this section to the next comment to change visualization
+"""obstacles = [[[1, 1], 3, 1],
+                 [[1, 3], 1, 3],
+                 [[1, 6], 4, 1],
+                 [[1, 8], 2, 1],
+                 [[1, 10], 1, 2],
+                 [[1, 11], 4, 1],
+                 [[4, 3], 1, 4],
+                 [[4, 8], 1, 4],
+                 [[6, 0], 1, 3],
+                 [[6, 4], 6, 1],
+                 [[6, 6], 4, 1],
+                 [[6, 8], 1, 4],
+                 [[6, 11], 3, 1],
+                 [[9, 0], 2, 3],
+                 [[9, 6], 1, 6],
+                 [[11, 6], 2, 1],
+                 [[11, 6], 1, 3],
+                 [[11, 10], 1, 3],
+                 [[12, 2], 1, 1]]
+exits = [[0, 6], [5, 0], [12, 5], [5, 12]]
+shooters = [[9, 12], [3, 0], [0, 8], [12, 3]]
+size = 13
+start = [8, 10]"""
+# Comment to here
+
+# FIGURE 5 - Exits too far away example
+# 13x13 Medium Grid Demonstration
+# Comment out this section to the next comment to change visualization
+"""obstacles = [[[1, 1], 3, 1],
+                 [[1, 3], 1, 3],
+                 [[1, 6], 4, 1],
+                 [[1, 8], 2, 1],
+                 [[1, 10], 1, 2],
+                 [[1, 11], 4, 1],
+                 [[4, 3], 1, 4],
+                 [[4, 8], 1, 4],
+                 [[6, 0], 1, 3],
+                 [[6, 4], 6, 1],
+                 [[6, 6], 4, 1],
+                 [[6, 8], 1, 4],
+                 [[6, 11], 3, 1],
+                 [[9, 0], 2, 3],
+                 [[9, 6], 1, 6],
+                 [[11, 6], 2, 1],
+                 [[11, 6], 1, 3],
+                 [[11, 10], 1, 3],
+                 [[12, 2], 1, 1]]
+exits = [[12, 0], [0, 0], [5, 12]]
+shooters = [[0, 11]]
+size = 13
+start = [1, 9]"""
+# Comment to here
+
 
 # initialize graph
 graph.graph = graph.Graph(size, obstacles, exits)
